@@ -1,0 +1,51 @@
+units	lj
+atom_style	ellipsoid
+
+dimension	3
+boundary	p p p
+
+read_data	"particles.in"
+
+group	sol	type 1:2
+group	cond	type 3
+group	par	type 1:3
+group	mem	type 4
+
+set group all mass 1.0
+
+################ pair style ################
+pair_style	hybrid/overlay	ylz 3.500000 cosine/squared 3.500000
+#pw359: Initialise LJ/expand to zero for all possible combinations
+pair_coeff	*	*	cosine/squared	0	0
+pair_coeff	1	1	cosine/squared	1.000000	1.000000	1.000000	wca
+pair_coeff	1	2	cosine/squared	1.000000	1.000000	1.000000	wca
+pair_coeff	1	3	cosine/squared	1.000000	1.000000	1.000000	wca
+pair_coeff	1	4	cosine/squared	1.000000	1.500000	1.500000	wca
+pair_coeff	2	2	cosine/squared	1.000000	1.000000	1.000000	wca
+pair_coeff	2	3	cosine/squared	1.000000	1.000000	1.000000	wca
+pair_coeff	2	4	cosine/squared	1.000000	1.500000	1.500000	wca
+pair_coeff	3	3	cosine/squared	1.000000	1.000000	1.000000	wca
+pair_coeff	3	4	cosine/squared	1.000000	1.500000	1.500000	wca
+pair_coeff	4	4	ylz	4.340000	1.120000	4.000000	3.000000	0.000000	2.600000
+pair_modify	shift	yes
+
+################ integrators ################
+fix	fLANG	all	langevin 1.0 1.0 1 1234 zero yes angmom 3.33333
+fix	fNVE	all	nve/asphere
+
+compute	orient all property/atom quatw quati quatj quatk
+compute	diameter all property/atom shapex shapey shapez
+compute	mTemp mem temp
+
+################ dump ################
+dump	coords	all	custom 5000 output.xyz id type x y z angmomx angmomy angmomz c_orient[1] c_orient[2] c_orient[3] c_orient[4] c_diameter[1] c_diameter[2] c_diameter[3]
+dump_modify	coords sort id
+dump_modify	coords format line "%d %d %.2f %.2f %.2f %.2f %.2f %.2f %.2f %.2f %.2f %.2f %.2f %.2f %.2f"
+
+restart 5000	continue.dat	continue.dat
+
+################ run ################
+timestep	0.01
+thermo	5000
+thermo_modify	temp mTemp
+run	200000

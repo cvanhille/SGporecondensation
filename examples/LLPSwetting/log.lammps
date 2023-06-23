@@ -1,0 +1,185 @@
+LAMMPS (3 Nov 2022)
+units	lj
+atom_style	ellipsoid
+
+dimension	3
+boundary	p p p
+
+read_data	"particles.in"
+Reading data file ...
+  orthogonal box = (-30 -30 -30) to (30 30 30)
+  1 by 2 by 2 MPI processor grid
+  reading atoms ...
+  16999 atoms
+  16999 ellipsoids
+  read_data CPU = 0.131 seconds
+
+group	sol	type 1:2
+2325 atoms in group sol
+group	cond	type 3
+10921 atoms in group cond
+group	par	type 1:3
+13246 atoms in group par
+group	mem	type 4
+3753 atoms in group mem
+
+set group all mass 1.0
+Setting atom values ...
+  16999 settings made for mass
+
+################ pair style ################
+pair_style	hybrid/overlay	ylz 3.500000 cosine/squared 3.500000
+#pw359: Initialise LJ/expand to zero for all possible combinations
+pair_coeff	*	*	cosine/squared	0	0
+pair_coeff	1	1	cosine/squared	1.000000	1.000000	1.000000	wca
+WARNING: Cosine/squared set to WCA only (cutoff = sigma) (../pair_cosine_squared.cpp:158)
+pair_coeff	1	2	cosine/squared	1.000000	1.000000	1.000000	wca
+WARNING: Cosine/squared set to WCA only (cutoff = sigma) (../pair_cosine_squared.cpp:158)
+pair_coeff	1	3	cosine/squared	1.500000	1.000000	2.500000	wca
+pair_coeff	1	4	cosine/squared	1.000000	1.500000	1.500000	wca
+WARNING: Cosine/squared set to WCA only (cutoff = sigma) (../pair_cosine_squared.cpp:158)
+pair_coeff	2	2	cosine/squared	1.000000	1.000000	1.000000	wca
+WARNING: Cosine/squared set to WCA only (cutoff = sigma) (../pair_cosine_squared.cpp:158)
+pair_coeff	2	3	cosine/squared	1.000000	1.000000	1.000000	wca
+WARNING: Cosine/squared set to WCA only (cutoff = sigma) (../pair_cosine_squared.cpp:158)
+pair_coeff	2	4	cosine/squared	1.000000	1.500000	1.500000	wca
+WARNING: Cosine/squared set to WCA only (cutoff = sigma) (../pair_cosine_squared.cpp:158)
+pair_coeff	3	3	cosine/squared	1.000000	1.000000	1.000000	wca
+WARNING: Cosine/squared set to WCA only (cutoff = sigma) (../pair_cosine_squared.cpp:158)
+pair_coeff	3	4	cosine/squared	0.100000	1.500000	3.750000	wca
+pair_coeff	4	4	ylz	4.340000	1.120000	4.000000	3.000000	0.000000	2.600000
+pair_modify	shift	yes
+WARNING: pair_modify shift has no effect on pair_style cosine/squared (../pair_cosine_squared.cpp:219)
+
+################ integrators ################
+fix	fLANG	all	langevin 1.0 1.0 1 1234 zero yes angmom 3.33333
+fix	fNVE	all	nve/asphere
+
+compute	orient all property/atom quatw quati quatj quatk
+compute	diameter all property/atom shapex shapey shapez
+compute	mTemp mem temp
+
+################ dump ################
+dump	coords	all	custom 5000 output.xyz id type x y z angmomx angmomy angmomz c_orient[1] c_orient[2] c_orient[3] c_orient[4] c_diameter[1] c_diameter[2] c_diameter[3]
+dump_modify	coords sort id
+dump_modify	coords format line "%d %d %.2f %.2f %.2f %.2f %.2f %.2f %.2f %.2f %.2f %.2f %.2f %.2f %.2f"
+
+restart 5000	continue.dat	continue.dat
+
+################ run ################
+timestep	0.01
+thermo	5000
+thermo_modify	temp mTemp
+WARNING: Temperature for thermo pressure is not for group all (../thermo.cpp:520)
+run	200000
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- pair ylz command:
+
+@Article{Yuan10,
+ author =  {H. Yuan, C. Huang, J. Li, G. Lykotrafitis, and S. Zhang},
+ title =   {One-particle-thick, solvent-free, coarse-grained model for biological and biomimetic fluid membranes},
+ journal = {Phys. Rev. E},
+ year =    2010,
+ volume =  82,
+ pages =   {011905}
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Generated 0 of 6 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 4.05
+  ghost atom cutoff = 4.05
+  binsize = 2.025, bins = 30 30 30
+  3 neighbor lists, perpetual/occasional/extra = 3 0 0
+  (1) pair ylz, perpetual, skip from (3)
+      attributes: half, newton on, cut 2.9
+      pair build: skip
+      stencil: none
+      bin: none
+  (2) pair cosine/squared, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+  (3) neighbor class addition, perpetual, trim from (2)
+      attributes: half, newton on, cut 2.9
+      pair build: trim
+      stencil: none
+      bin: none
+Per MPI rank memory allocation (min/avg/max) = 9.672 | 9.681 | 9.694 Mbytes
+   Step          Temp          E_pair         E_mol          TotEng         Press     
+         0   0             -2.2866445      0             -2.2866445     -0.012909316  
+      5000   0.99300279    -2.5653354      0             -2.2365738     -0.0012330769 
+     10000   0.99718055    -2.9457157      0             -2.6155709     -0.0048883503 
+     15000   0.98699704    -3.2569772      0             -2.9302039     -0.0077284464 
+     20000   1.0089799     -3.5294134      0             -3.1953621     -0.011240268  
+     25000   1.0033928     -3.7509573      0             -3.4187557     -0.0092372312 
+     30000   0.99646432    -3.9556693      0             -3.6257616     -0.010629505  
+     35000   0.99926537    -4.2100002      0             -3.8791651     -0.015001004  
+     40000   1.0072377     -4.3771069      0             -4.0436324     -0.010138908  
+     45000   0.99899577    -4.4035628      0             -4.072817      -0.014946114  
+     50000   0.98606294    -4.4694482      0             -4.1429841     -0.0090090333 
+     55000   1.0033929     -4.4769585      0             -4.1447569     -0.013329311  
+     60000   0.99378718    -4.5171263      0             -4.188105      -0.009893921  
+     65000   0.99246537    -4.5161654      0             -4.1875817     -0.011645743  
+     70000   1.0096353     -4.5452013      0             -4.2109329     -0.014090303  
+     75000   0.99437518    -4.5398444      0             -4.2106283     -0.014775074  
+     80000   0.98988177    -4.5504024      0             -4.222674      -0.011976718  
+     85000   1.0099207     -4.5855324      0             -4.2511695     -0.0092002968 
+     90000   0.986301      -4.5862577      0             -4.2597148     -0.012825522  
+     95000   0.98810991    -4.5849481      0             -4.2578063     -0.013237918  
+    100000   0.99473476    -4.5683795      0             -4.2390444     -0.0086221126 
+    105000   1.0073727     -4.5915581      0             -4.2580389     -0.010006585  
+    110000   0.99394831    -4.5898484      0             -4.2607736     -0.011235235  
+    115000   1.0290301     -4.6122141      0             -4.2715246     -0.013407482  
+    120000   1.0000154     -4.6107112      0             -4.2796278     -0.016527164  
+    125000   0.97829446    -4.5876093      0             -4.2637173     -0.013818019  
+    130000   1.0039275     -4.6105292      0             -4.2781506     -0.015422435  
+    135000   1.001934      -4.5949537      0             -4.2632351     -0.013113736  
+    140000   0.99811222    -4.6047361      0             -4.2742828     -0.012723439  
+    145000   0.98876584    -4.5966946      0             -4.2693357     -0.013123232  
+    150000   1.0047276     -4.6023473      0             -4.2697038     -0.011933625  
+    155000   1.0051351     -4.6084126      0             -4.2756341     -0.015963479  
+    160000   0.98074432    -4.6424813      0             -4.3177781     -0.014864439  
+    165000   1.0073804     -4.6090452      0             -4.2755235     -0.014853723  
+    170000   1.0147584     -4.633632       0             -4.2976676     -0.01505012   
+    175000   0.99307252    -4.6156026      0             -4.2868178     -0.011773835  
+    180000   0.98877168    -4.6276441      0             -4.3002833     -0.015281934  
+    185000   1.0030293     -4.6329819      0             -4.3009007     -0.012299479  
+    190000   0.99055703    -4.6253391      0             -4.2973872     -0.0098938738 
+    195000   1.0058805     -4.6256463      0             -4.2926211     -0.014838613  
+    200000   1.0275489     -4.6534184      0             -4.3132193     -0.017437887  
+Loop time of 2257.27 on 4 procs for 200000 steps with 16999 atoms
+
+Performance: 76552.655 tau/day, 88.603 timesteps/s, 1.506 Matom-step/s
+99.9% CPU use with 4 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 892.92     | 1000.5     | 1108.8     | 259.2 | 44.32
+Neigh   | 417.41     | 482.52     | 540.23     | 236.9 | 21.38
+Comm    | 139.05     | 306.47     | 479.65     | 766.5 | 13.58
+Output  | 1.5856     | 1.5871     | 1.5892     |   0.1 |  0.07
+Modify  | 411.44     | 429.89     | 437.84     |  51.9 | 19.04
+Other   |            | 36.31      |            |       |  1.61
+
+Nlocal:        4249.75 ave        4571 max        4090 min
+Histogram: 2 0 0 1 0 0 0 0 0 1
+Nghost:        4108.25 ave        4268 max        4039 min
+Histogram: 2 1 0 0 0 0 0 0 0 1
+Neighs:          60999 ave       66893 max       54262 min
+Histogram: 1 0 0 0 0 2 0 0 0 1
+
+Total # of neighbors = 243996
+Ave neighs/atom = 14.35355
+Neighbor list builds = 52960
+Dangerous builds = 0
+Total wall time: 0:37:37
